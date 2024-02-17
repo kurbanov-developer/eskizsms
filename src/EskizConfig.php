@@ -15,7 +15,7 @@ class EskizConfig
         $this->config = $config;
     }
 
-    public function getUsername(): ?string
+    public function getEmail(): ?string
     {
         return $this->config['email'] ?? null;
     }
