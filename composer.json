@@ -3,6 +3,13 @@
     "description": "Laravel Eskiz Notification",
     "homepage": "https://github.com/kurbanov-developer/eskizsms",
     "license": "MIT",
+    "keywords": [
+        "laravel",
+        "eskiz",
+        "notification",
+        "eskizsms",
+        "sms"
+    ],
     "version": "1.0.1",
     "authors": [
         {
