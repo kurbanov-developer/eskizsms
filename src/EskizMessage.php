@@ -6,6 +6,7 @@ class EskizMessage
 {
     // Определите свойства для хранения номера телефона и текста сообщения
     protected $to;
+    protected $from;
     protected $content;
 
     // Создайте новый экземпляр сообщения, принимая номер телефона и текст сообщения в качестве параметров
@@ -24,6 +25,12 @@ class EskizMessage
         return $this;
     }
 
+    public function from($from)
+    {
+        $this->from = $from;
+        return $this;
+    }
+
 
     // Определите метод для установки текста сообщения
     public function content($content)
@@ -36,6 +43,12 @@ class EskizMessage
     public function getTo()
     {
         return $this->to;
+    }
+
+    // Определите метод для от куда текста сообщения
+    public function getFrom()
+    {
+        return $this->from;
     }
 
     // Определите метод для получения текста сообщения

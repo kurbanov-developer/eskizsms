@@ -1,11 +1,14 @@
 <?php
 
-namespace App\Providers;
+namespace NotificationChannels\EskizSms;
 
-use App\Channels\EskizChannel;
-use App\Notifications\EskizMessage;
+use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Contracts\Foundation\Application;
+use NotificationChannels\EskizSms\EskizChannel;
+use NotificationChannels\EskizSms\EskizMessage;
+use NotificationChannels\EskizSms\EskizConfig;
+use NotificationChannels\EskizSms\Eskiz;
 use Illuminate\Support\ServiceProvider;
-use Uzsoftic\LaravelEskiz\Eskiz;
 use GuzzleHttp\Client;
 
 class EskizServiceProvider extends ServiceProvider
@@ -15,23 +18,29 @@ class EskizServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Регистрируйте экземпляр Eskiz в контейнере сервисов
-        $this->app->singleton(Eskiz::class, function ($app) {
-            // Получите email и пароль из файла конфигурации
-            $email = config('services.eskiz.email');
-            $password = config('services.eskiz.password');
 
-            // Создайте новый экземпляр Eskiz, передавая email и пароль
-            return new Eskiz($email, $password);
+        $this->mergeConfigFrom(__DIR__.'/../config/eskizsms.php', 'eskizsms');
+
+        $this->publishes([
+            __DIR__.'/../config/eskizsms.php' => config_path('eskizsms.php'),
+        ]);
+
+        $this->app->bind(EskizConfig::class, function () {
+            return new EskizConfig($this->app['config']['eskizsms']);
         });
 
         // Регистрируйте экземпляр EskizChannel в контейнере сервисов
-        $this->app->singleton(EskizChannel::class, function ($app) {
-            // Получите экземпляр Eskiz из контейнера сервисов
-            $eskiz = $app->make(Eskiz::class);
+        $this->app->singleton(Eskiz::class, function (Application $app) {
+            return new Eskiz(
+                $app->make(EskizConfig::class)
+            );
+        });
 
-            // Создайте новый экземпляр EskizChannel, передавая экземпляр Eskiz и клиент Guzzle
-            return new EskizChannel($eskiz, new Client());
+        $this->app->singleton(EskizChannel::class, function (Application $app) {
+            return new EskizChannel(
+                $app->make(Eskiz::class),
+                $app->make(Dispatcher::class)
+            );
         });
     }
 
@@ -40,20 +49,15 @@ class EskizServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Опубликуйте файл конфигурации Eskiz в папку config
-        $this->publishes([
-            __DIR__.'/../config/eskiz.php' => config_path('eskiz.php'),
-        ]);
+        
+    }
 
-        // Добавьте псевдоним eskiz для канала EskizChannel
-        $this->app->make('Illuminate\Notifications\ChannelManager')
-            ->extend('eskiz', function ($app) {
-                return $app->make(EskizChannel::class);
-            });
-
-        // Добавьте макрос eskiz для класса Notification, который возвращает экземпляр EskizMessage
-        Notification::macro('eskiz', function ($message) {
-            return new EskizMessage($message);
-        });
+    public function provides(): array
+    {
+        return [
+            EskizConfig::class,
+            Eskiz::class,
+            EskizChannel::class,
+        ];
     }
 }
