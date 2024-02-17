@@ -1,0 +1,37 @@
+{
+    "name": "kurbanov-developer/eskizsms",
+    "description": "Laravel Eskiz Notification",
+    "homepage": "https://github.com/kurbanov-developer/eskizsms",
+    "license": "MIT",
+    "version": "1.0.1",
+    "authors": [
+        {
+            "name": "Kurbonov Ismoil",
+            "email": "kurbanov.developer@yandex.ru",
+            "homepage": "https://kurbonov.ru"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "illuminate/support": "~5.7|~5.8|^6.0|^7.0|^8.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "4.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "NotificationChannels\\EskizSms\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "NotificationChannels\\EskizSms\\Test\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
