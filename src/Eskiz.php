@@ -24,61 +24,8 @@ class Eskiz
      */
     public function sendMessage(EskizMessage $message, ?string $to, $from)
     {
-        if ($message instanceof EskizMessage) {
-            if ($from) {
-                $message->from($sender);
-            }
+        return $message;
 
-            return $this->sendSmsMessage($to, $message, $from);
-        }
-
-    }
-
-    protected function sendSmsMessage(TwilioSmsMessage $message, ?string $to): MessageInstance
-    {
-        $debugTo = $this->config->getDebugTo();
-
-        if (!empty($debugTo)) {
-            $to = $debugTo;
-        }
-
-        $params = [
-            'body' => trim($message->content),
-        ];
-
-        if ($messagingServiceSid = $this->getMessagingServiceSid($message)) {
-            $params['messagingServiceSid'] = $messagingServiceSid;
-        }
-
-        if ($this->config->isShortenUrlsEnabled()) {
-            $params['ShortenUrls'] = "true";
-        }
-
-        if ($from = $this->getFrom($message)) {
-            $params['from'] = $from;
-        }
-
-        if (empty($from) && empty($messagingServiceSid)) {
-            throw CouldNotSendNotification::missingFrom();
-        }
-
-        $this->fillOptionalParams($params, $message, [
-            'statusCallback',
-            'statusCallbackMethod',
-            'applicationSid',
-            'forceDelivery',
-            'maxPrice',
-            'provideFeedback',
-            'validityPeriod',
-        ]);
-
-        if ($message instanceof TwilioMmsMessage) {
-            $this->fillOptionalParams($params, $message, [
-                'mediaUrl',
-            ]);
-        }
-
-        return $this->twilioService->messages->create($to, $params);
     }
 
         /**
