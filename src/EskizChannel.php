@@ -46,40 +46,35 @@ class EskizChannel
         // Получите представление уведомления для канала Eskiz
         $message = $notification->toEskiz($notifiable);
 
-        $config = $app->make(EskizConfig::class);
-
-        // Получите номер телефона для получения SMS
-        $to = $notifiable->routeNotificationFor('eskiz', $notification);
-
         // Получите токен для аутентификации на API Eskiz
         $token = $this->getToken();
 
         // Отправьте запрос к API Eskiz, используя клиент Guzzle
-        $this->client->request('POST', 'https://notify.eskiz.uz/api/message/sms/send', [
+        $response = $this->client->request('POST', 'https://notify.eskiz.uz/api/message/sms/send', [
             'headers' => [
                 'Authorization' => 'Bearer ' . $token,
             ],
             'form_params' => [
-                'mobile_phone' => $to,
-                'message' => $message,
-                'from' => $from,
+                'mobile_phone' => $message->getTo(),
+                'message' => $message->getContent(),
+                'from' => $message->getFrom(),
             ],
         ]);
 
-        $this->eskiz->messages->create($to, $message);
+        return $response;
     }
 
     // Определите метод для получения токена для аутентификации на API Eskiz
     protected function getToken()
     {
         // Получите email и пароль из файла конфигурации
-        $config = $app->make(EskizConfig::class);
+        $config = config('services.eskiz');
 
         // Отправьте запрос к API Eskiz, используя клиент Guzzle
         $response = $this->client->request('POST', 'https://notify.eskiz.uz/api/auth/login', [
             'form_params' => [
-                'email' => $config->getEmail(),
-                'password' => $config->getPassword(),
+                'email' => $config['email'],
+                'password' => $config['password'],
             ],
         ]);
 

@@ -2,16 +2,10 @@
 
 namespace NotificationChannels\EskizSms;
 
-use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Contracts\Foundation\Application;
-use NotificationChannels\EskizSms\EskizChannel;
-use NotificationChannels\EskizSms\EskizMessage;
-use NotificationChannels\EskizSms\EskizConfig;
-use NotificationChannels\EskizSms\Eskiz;
+use Illuminate\Contracts\Support\DeferrableProvider;
 use Illuminate\Support\ServiceProvider;
-use GuzzleHttp\Client;
 
-class EskizServiceProvider extends ServiceProvider
+class EskizServiceProvider extends ServiceProvider implements DeferrableProvider
 {
     /**
      * Register any application services.
@@ -19,29 +13,10 @@ class EskizServiceProvider extends ServiceProvider
     public function register(): void
     {
 
-        $this->mergeConfigFrom(__DIR__.'/../config/eskizsms.php', 'eskizsms');
-
-        $this->publishes([
-            __DIR__.'/../config/eskizsms.php' => config_path('eskizsms.php'),
-        ]);
-
-        $this->app->bind(EskizConfig::class, function () {
-            return new EskizConfig($this->app['config']['eskizsms']);
+        $this->app->bind(EskizConfig::class, function ($app) {
+            return new EskizConfig(config('services.eskiz'));
         });
 
-        // Регистрируйте экземпляр EskizChannel в контейнере сервисов
-        $this->app->singleton(Eskiz::class, function (Application $app) {
-            return new Eskiz(
-                $app->make(EskizConfig::class)
-            );
-        });
-
-        $this->app->singleton(EskizChannel::class, function (Application $app) {
-            return new EskizChannel(
-                $app->make(Eskiz::class),
-                $app->make(Dispatcher::class)
-            );
-        });
     }
 
     /**
@@ -49,15 +24,21 @@ class EskizServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        
+        $this->registerPublishing();
     }
 
-    public function provides(): array
+
+    protected function registerPublishing(): void
     {
-        return [
-            EskizConfig::class,
-            Eskiz::class,
-            EskizChannel::class,
-        ];
+        $this->publishes([$this->getConfig() => config_path('eskiz-sms.php')], 'eskiz-config');
+
+    }
+
+    /**
+     * Get the config file path.
+     */
+    protected function getConfig(): string
+    {
+        return __DIR__.'/../config/eskiz-sms.php';
     }
 }

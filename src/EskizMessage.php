@@ -2,6 +2,9 @@
 
 namespace NotificationChannels\EskizSms;
 
+
+use Illuminate\Notifications\Notification;
+
 class EskizMessage
 {
     // Определите свойства для хранения номера телефона и текста сообщения
