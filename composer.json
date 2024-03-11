@@ -41,5 +41,14 @@
     },
     "config": {
         "sort-packages": true
+    },
+    "prefer-stable": true,
+    "extra": {
+        "laravel": {
+            "providers": [
+                "KurbanovDeveloper\\EskizSms\\EskizServiceProvider"
+            ]
+        }
     }
+    
 }

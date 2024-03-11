@@ -2,17 +2,15 @@
 
 namespace NotificationChannels\EskizSms;
 
+use GuzzleHttp\Client;
+
 class Eskiz
 {
-    /** @var EskizConfig */
-    public $config;
 
-    public function __construct(EskizConfig $config)
+    public function __construct()
     {
-        $this->config = $config;
+        //
     }
-
-    
     /**
      * Send a EskizMessage to the a phone number.
      *
@@ -22,22 +20,45 @@ class Eskiz
      *
      * @return mixed
      */
-    public function sendMessage(EskizMessage $message, ?string $to, $from)
+    public function sendMessage(string $message, string $to, ?string $from)
     {
-        return $message;
+        $client = new Client();
+        $to = preg_replace('/[^0-9]/', '', $to);
+        $token = $this->getToken();
+        $response = $client->request('POST', 'https://notify.eskiz.uz/api/message/sms/send', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token,
+            ],
+            'form_params' => [
+                'mobile_phone' => $to,
+                'message' => $message,
+                'from' => config('services.eskiz.from'),
+            ],
+        ]);
 
     }
 
-        /**
-     * Get the from address from message, or config.
-     *
-     * @param EskizMessage $message
-     * @return string|null
-     */
-    protected function getFrom(EskizMessage $message): ?string
+
+    public function getToken()
     {
-        return $message->getFrom() ?: $this->config->getFrom();
+        $client = new Client();
+        // Получите email и пароль из файла конфигурации
+        $config = config('services.eskiz');
+        // Отправьте запрос к API Eskiz, используя клиент Guzzle
+        $response = $client->request('POST', 'https://notify.eskiz.uz/api/auth/login', [
+            'form_params' => [
+                'email' => $config['email'],
+                'password' => $config['password'],
+            ],
+        ]);
+
+        // Получите тело ответа в виде массива
+        $body = json_decode($response->getBody(), true);
+
+        // Верните токен из ответа
+        return $body['data']['token'];
     }
+
 
 
 
